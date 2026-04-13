@@ -1,7 +1,7 @@
 const http = require("http");
 
 const server = http.createServer((req, res) => {
-  res.end("🚀 App Running from DevOps Pipeline!");
+  res.end("🚀 New Pipeline App Running from DevOps Pipeline!");
 });
 
 server.listen(3000, () => {
