@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment {
-        DOCKER_USER = "your-docker-username"
+        DOCKER_USER = "taufeeqdev"
         APP_NAME = "my-node-app"
         CONTAINER_NAME = "my-node-container"
         PORT = "3000"
