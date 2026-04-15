@@ -9,40 +9,35 @@ pipeline {
 
     stages {
 
-        stage('Clone Code') {
-            steps {
-                echo "Cloning repository..."
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker image..."
-                sh 'docker build -t $APP_NAME .'
+                echo "Building Docker image with version ${BUILD_NUMBER}"
+                sh "docker build -t ${APP_NAME}:${BUILD_NUMBER} ."
             }
         }
 
         stage('Stop Old Container') {
             steps {
-                echo "Stopping old container if exists..."
-                sh 'docker rm -f $CONTAINER_NAME || true'
+                echo "Stopping old container..."
+                sh "docker rm -f ${CONTAINER_NAME} || true"
             }
         }
 
         stage('Run Container') {
             steps {
-                echo "Running new container..."
-                sh 'docker run -d -p $PORT:$PORT --name $CONTAINER_NAME $APP_NAME'
+                echo "Running container with version ${BUILD_NUMBER}"
+                sh "docker run -d -p ${PORT}:${PORT} --name ${CONTAINER_NAME} ${APP_NAME}:${BUILD_NUMBER}"
             }
         }
+
     }
 
     post {
         success {
-            echo "✅ Deployment successful!"
+            echo "✅ Deployed version ${BUILD_NUMBER}"
         }
         failure {
-            echo "❌ Deployment failed!"
+            echo "❌ Deployment failed"
         }
     }
 }
