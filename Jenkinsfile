@@ -2,10 +2,11 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'VERSION', defaultValue: '', description: 'Enter version to rollback (leave empty for latest)')
+        string(name: 'VERSION', defaultValue: '', description: 'Rollback version (optional)')
     }
 
     environment {
+        DOCKER_USER = "your-docker-username"
         APP_NAME = "my-node-app"
         CONTAINER_NAME = "my-node-container"
         PORT = "3000"
@@ -18,14 +19,23 @@ pipeline {
                 expression { params.VERSION == '' }
             }
             steps {
-                echo "Building Docker image with version ${BUILD_NUMBER}"
-                sh "docker build -t ${APP_NAME}:${BUILD_NUMBER} ."
+                echo "Building image ${BUILD_NUMBER}"
+                sh "docker build -t ${DOCKER_USER}/${APP_NAME}:${BUILD_NUMBER} ."
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            when {
+                expression { params.VERSION == '' }
+            }
+            steps {
+                echo "Pushing image to Docker Hub"
+                sh "docker push ${DOCKER_USER}/${APP_NAME}:${BUILD_NUMBER}"
             }
         }
 
         stage('Stop Old Container') {
             steps {
-                echo "Stopping old container if exists..."
                 sh "docker rm -f ${CONTAINER_NAME} || true"
             }
         }
@@ -37,18 +47,9 @@ pipeline {
 
                     echo "Deploying version ${imageVersion}"
 
-                    sh "docker run -d -p ${PORT}:${PORT} --name ${CONTAINER_NAME} ${APP_NAME}:${imageVersion}"
+                    sh "docker run -d -p ${PORT}:${PORT} --name ${CONTAINER_NAME} ${DOCKER_USER}/${APP_NAME}:${imageVersion}"
                 }
             }
-        }
-    }
-
-    post {
-        success {
-            echo "✅ Deployment successful!"
-        }
-        failure {
-            echo "❌ Deployment failed!"
         }
     }
 }
