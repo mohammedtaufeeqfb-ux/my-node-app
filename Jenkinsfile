@@ -1,65 +1,32 @@
 pipeline {
     agent any
 
-    parameters {
-        string(name: 'VERSION', defaultValue: '', description: 'Rollback version (leave empty for latest)')
-    }
-
     environment {
-        DOCKER_USER = "taufeeqdev"
-        APP_NAME = "my-node-app"
+        IMAGE_NAME = "my-node-app"
         CONTAINER_NAME = "my-node-container"
         PORT = "3000"
     }
 
     stages {
 
-        stage('Checkout Code') {
-            steps {
-                echo "Cloning repository..."
-                git 'https://github.com/mohammedtaufeeqfb-ux/my-node-app'
-            }
-        }
-
         stage('Build Docker Image') {
-            when {
-                expression { params.VERSION == '' }
-            }
             steps {
-                echo "Building image version ${BUILD_NUMBER}"
-                sh "docker build -t ${DOCKER_USER}/${APP_NAME}:${BUILD_NUMBER} ."
-            }
-        }
-
-        stage('Push to Docker Hub') {
-            when {
-                expression { params.VERSION == '' }
-            }
-            steps {
-                echo "Pushing image to Docker Hub"
-                sh "docker push ${DOCKER_USER}/${APP_NAME}:${BUILD_NUMBER}"
+                echo "Building Docker image..."
+                sh "docker build -t $IMAGE_NAME ."
             }
         }
 
         stage('Stop Old Container') {
             steps {
-                echo "Stopping old container..."
-                sh "docker rm -f ${CONTAINER_NAME} || true"
+                echo "Stopping old container if exists..."
+                sh "docker rm -f $CONTAINER_NAME || true"
             }
         }
 
-        stage('Pull & Run Container') {
+        stage('Run Container') {
             steps {
-                script {
-                    def imageVersion = params.VERSION ? params.VERSION : BUILD_NUMBER
-
-                    echo "Deploying version ${imageVersion}"
-
-                    sh """
-                    docker pull ${DOCKER_USER}/${APP_NAME}:${imageVersion}
-                    docker run -d -p ${PORT}:${PORT} --name ${CONTAINER_NAME} ${DOCKER_USER}/${APP_NAME}:${imageVersion}
-                    """
-                }
+                echo "Running new container..."
+                sh "docker run -d -p $PORT:$PORT --name $CONTAINER_NAME $IMAGE_NAME"
             }
         }
     }
