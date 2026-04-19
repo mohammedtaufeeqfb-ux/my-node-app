@@ -14,6 +14,13 @@ pipeline {
 
     stages {
 
+        stage('Checkout Code') {
+            steps {
+                echo "Cloning repository..."
+                git 'https://github.com/mohammedtaufeeqfb-ux/my-node-app'
+            }
+        }
+
         stage('Build Docker Image') {
             when {
                 expression { params.VERSION == '' }
