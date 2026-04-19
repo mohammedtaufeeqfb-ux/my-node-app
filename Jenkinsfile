@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
+        DOCKER_USER = "taufeeqdev"
         IMAGE_NAME = "my-node-app"
-        CONTAINER_NAME = "my-node-container"
-        PORT = "3000"
+        VERSION = "${BUILD_NUMBER}"
     }
 
     stages {
@@ -12,31 +12,23 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo "Building Docker image..."
-                sh "docker build -t $IMAGE_NAME ."
+                sh "docker build -t $DOCKER_USER/$IMAGE_NAME:$VERSION ."
             }
         }
 
-        stage('Stop Old Container') {
+        stage('Push to Docker Hub') {
             steps {
-                echo "Stopping old container if exists..."
-                sh "docker rm -f $CONTAINER_NAME || true"
+                echo "Pushing image to Docker Hub..."
+                sh "docker push $DOCKER_USER/$IMAGE_NAME:$VERSION"
             }
         }
 
-        stage('Run Container') {
+        stage('Deploy Container') {
             steps {
-                echo "Running new container..."
-                sh "docker run -d -p $PORT:$PORT --name $CONTAINER_NAME $IMAGE_NAME"
+                echo "Deploying container..."
+                sh "docker rm -f my-node-container || true"
+                sh "docker run -d -p 3000:3000 --name my-node-container $DOCKER_USER/$IMAGE_NAME:$VERSION"
             }
-        }
-    }
-
-    post {
-        success {
-            echo "✅ Deployment successful!"
-        }
-        failure {
-            echo "❌ Deployment failed!"
         }
     }
 }
