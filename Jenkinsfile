@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'VERSION', defaultValue: '', description: 'Rollback version (optional)')
+        string(name: 'VERSION', defaultValue: '', description: 'Rollback version (leave empty for latest)')
     }
 
     environment {
@@ -19,7 +19,7 @@ pipeline {
                 expression { params.VERSION == '' }
             }
             steps {
-                echo "Building image ${BUILD_NUMBER}"
+                echo "Building image version ${BUILD_NUMBER}"
                 sh "docker build -t ${DOCKER_USER}/${APP_NAME}:${BUILD_NUMBER} ."
             }
         }
@@ -36,20 +36,33 @@ pipeline {
 
         stage('Stop Old Container') {
             steps {
+                echo "Stopping old container..."
                 sh "docker rm -f ${CONTAINER_NAME} || true"
             }
         }
 
-        stage('Run Container') {
+        stage('Pull & Run Container') {
             steps {
                 script {
                     def imageVersion = params.VERSION ? params.VERSION : BUILD_NUMBER
 
                     echo "Deploying version ${imageVersion}"
 
-                    sh "docker run -d -p ${PORT}:${PORT} --name ${CONTAINER_NAME} ${DOCKER_USER}/${APP_NAME}:${imageVersion}"
+                    sh """
+                    docker pull ${DOCKER_USER}/${APP_NAME}:${imageVersion}
+                    docker run -d -p ${PORT}:${PORT} --name ${CONTAINER_NAME} ${DOCKER_USER}/${APP_NAME}:${imageVersion}
+                    """
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Deployment successful!"
+        }
+        failure {
+            echo "❌ Deployment failed!"
         }
     }
 }
