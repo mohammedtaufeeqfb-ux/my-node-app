@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_USER = "your-docker-username"
+        DOCKER_USER = "taufeeqdev"
         IMAGE_NAME = "my-node-app"
         VERSION = "${BUILD_NUMBER}"
         CONTAINER_NAME = "my-node-container"
