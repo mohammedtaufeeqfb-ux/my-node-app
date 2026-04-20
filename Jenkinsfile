@@ -2,9 +2,11 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_USER = "taufeeqdev"
+        DOCKER_USER = "your-docker-username"
         IMAGE_NAME = "my-node-app"
         VERSION = "${BUILD_NUMBER}"
+        CONTAINER_NAME = "my-node-container"
+        PORT = "3000"
     }
 
     stages {
@@ -26,9 +28,18 @@ pipeline {
         stage('Deploy Container') {
             steps {
                 echo "Deploying container..."
-                sh "docker rm -f my-node-container || true"
-                sh "docker run -d -p 3000:3000 --name my-node-container $DOCKER_USER/$IMAGE_NAME:$VERSION"
+                sh "docker rm -f $CONTAINER_NAME || true"
+                sh "docker run -d -p $PORT:$PORT --name $CONTAINER_NAME $DOCKER_USER/$IMAGE_NAME:$VERSION"
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Deployment successful!"
+        }
+        failure {
+            echo "❌ Deployment failed!"
         }
     }
 }
