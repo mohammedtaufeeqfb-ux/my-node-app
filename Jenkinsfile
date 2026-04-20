@@ -18,9 +18,18 @@ pipeline {
             }
         }
 
+        stage('Docker Login') {
+            steps {
+                echo "Logging into Docker Hub..."
+                withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                }
+            }
+        }
+
         stage('Push to Docker Hub') {
             steps {
-                echo "Pushing image to Docker Hub..."
+                echo "Pushing image..."
                 sh "docker push $DOCKER_USER/$IMAGE_NAME:$VERSION"
             }
         }
