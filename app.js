@@ -1,9 +1,10 @@
 const http = require("http");
+const os = require("os");
 
 const server = http.createServer((req, res) => {
-  res.end("🚀 New Change DevOps Pipeline!");
+  res.end(`🚀 Response from POD: ${os.hostname()}`);
 });
 
-server.listen(3000, "0.0.0.0", () => {
-  console.log("webhook test");
+server.listen(3000, () => {
+  console.log("Server running...");
 });
