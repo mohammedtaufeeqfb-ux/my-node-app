@@ -2,7 +2,7 @@ const http = require("http");
 const os = require("os");
 
 const server = http.createServer((req, res) => {
-  res.end(`🚀 Response from POD: ${os.hostname()}`);
+  res.end("🔥 Version 2 from DevOps Pipeline!");
 });
 
 server.listen(3000, () => {
